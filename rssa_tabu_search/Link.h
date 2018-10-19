@@ -33,7 +33,7 @@ public:
 	~Link();
 
 	std::tuple<Status, SlicePosition> getFirstFreeSlices(unsigned short requiredSlices);
-	bool canAllocate(SlicePosition position, unsigned short requiredSlices);
+	bool canAllocate(SlicePosition position, unsigned short requiredSlices) const;
 	Status allocate(SlicePosition position, unsigned short requiredSlices, unsigned short time);
 	void decrementTime();
 
@@ -43,6 +43,7 @@ public:
 private:
 	void changeForwardSlices(SlicePosition startPosition, unsigned short requiredSlices, unsigned short time);
 	void changeBackwardSlices(SlicePosition startPosition);
+	std::tuple<Status, Index> getIndexOfNextPositiveSlice(const std::array<Slice, Link::numOfSlices>& core, Index index) const;
 	void initialize();
 
 	std::array<std::array<Slice, numOfSlices>, numOfCores> slices;

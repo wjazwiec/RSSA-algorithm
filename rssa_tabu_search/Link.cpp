@@ -13,6 +13,9 @@ Link::~Link()
 
 std::tuple<Status, SlicePosition> Link::getFirstFreeSlices(unsigned short requiredSlices)
 {
+	if (requiredSlices > numOfSlices)
+		std::make_tuple(Status::NotOk, SlicePosition{});
+
 	for (Index core = 0; core < slices.size(); core++)
 	{
 		Index sliceIndex = 0;
@@ -31,8 +34,11 @@ std::tuple<Status, SlicePosition> Link::getFirstFreeSlices(unsigned short requir
 	return std::make_tuple(Status::NotOk, SlicePosition{});
 }
 
-bool Link::canAllocate(SlicePosition position, unsigned short requiredSlices)
+bool Link::canAllocate(SlicePosition position, unsigned short requiredSlices) const
 {
+	if (position.core >= numOfCores || position.slice >= numOfSlices)
+		return false;
+
 	return (slices[position.core][position.slice].value >= requiredSlices);
 }
 
@@ -45,18 +51,6 @@ Status Link::allocate(SlicePosition position, unsigned short requiredSlices, uns
 	changeBackwardSlices(position);
 
 	return Status::Ok;
-}
-
-void Link::decrementTime()
-{
-	for (auto& core : slices)
-	{
-		std::for_each(core.begin(), core.end(), [](Slice& slice) 
-		{ 
-			if (slice.remainingTime > 0)
-				slice.remainingTime--;
-		});
-	}
 }
 
 void Link::changeForwardSlices(SlicePosition startPosition, unsigned short requiredSlices, unsigned short time)
@@ -86,6 +80,62 @@ void Link::changeBackwardSlices(SlicePosition startPosition)
 
 		slice.value = backwardCounter++;
 		slice.remainingTime = 0;
+	}
+}
+
+std::tuple<Status, Index> Link::getIndexOfNextPositiveSlice(const std::array<Slice, Link::numOfSlices>& core, Index index) const
+{
+	while (index < numOfSlices)
+	{
+		if (core[index].value > 0)
+			return { Status::Ok, index };
+
+		index++;
+	}
+
+	return { Status::NotOk, Index(0) };
+}
+
+void Link::decrementTime()
+{
+	for (auto& core : slices)
+	{
+		for (Index i = 0; i < core.size(); i++)
+		{
+			if (core[i].remainingTime > 0)
+			{
+				core[i].remainingTime--;
+
+				if (core[i].remainingTime == 0)
+				{
+					auto [status, nextPositiveIndex] = getIndexOfNextPositiveSlice(core, i);
+					if (status == Status::Ok)
+					{
+						short nextPositiveValue = core[nextPositiveIndex].value + 1;
+
+						nextPositiveIndex--; //To get one element before
+
+						while(nextPositiveIndex >= 0 && nextPositiveIndex < numOfSlices && core[nextPositiveIndex].value < 0)
+						{
+							core[nextPositiveIndex].value = nextPositiveValue++;
+							core[nextPositiveIndex].remainingTime = 0;
+
+							nextPositiveIndex--;
+						} 
+
+					}
+					else //status not ok - slice is last channel. It is enough to do abs
+					{
+						while (i < numOfSlices)
+						{
+							core[i].value = abs(core[i].value);
+							core[i].remainingTime = 0;
+						}
+					}
+				}
+			}
+		}
+
 	}
 }
 
