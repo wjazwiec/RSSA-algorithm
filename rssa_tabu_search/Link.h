@@ -10,6 +10,7 @@ Maximal Free-Occupied Block (MFOB)
 	-5	-4	-3	-2	-1	5	4	3	2	1
 
 */
+
 using Index = unsigned int;
 
 struct Slice
@@ -37,15 +38,22 @@ public:
 	Status allocate(SlicePosition position, unsigned short requiredSlices, unsigned short time);
 	void decrementTime();
 
+	unsigned getCurrentCapacity() const;
+
 	static const size_t numOfSlices = 360;
 	static const size_t numOfCores = 30;
+
+	using Core = std::array<Slice, numOfSlices>;
+	using Fibre = std::array<Core, numOfCores>;
 
 private:
 	void changeForwardSlices(SlicePosition startPosition, unsigned short requiredSlices, unsigned short time);
 	void changeBackwardSlices(SlicePosition startPosition);
-	std::tuple<Status, Index> getIndexOfNextPositiveSlice(const std::array<Slice, Link::numOfSlices>& core, Index index) const;
+	std::tuple<Status, Index> getIndexOfNextPositiveSlice(const Core& core, Index index) const;
 	void initialize();
 
-	std::array<std::array<Slice, numOfSlices>, numOfCores> slices;
+	void handleDecrementTimeToZero(Core& core, Index index);
+
+	Fibre slices;
 };
 

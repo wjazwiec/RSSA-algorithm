@@ -1,3 +1,5 @@
+#define _SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING
+
 #include "gtest/gtest.h"
 #include "../rssa_tabu_search/Link.h"
 
@@ -116,5 +118,25 @@ TEST(LinkTest, TimeDecrementing)
 	link.decrementTime();
 
 	EXPECT_FALSE(link.canAllocate(position_0, 10));
-	EXPECT_TRUE(link.canAllocate(position_10, 10)); //TODO COVER THIS
+	EXPECT_TRUE(link.canAllocate(position_10, 10));
+}
+
+TEST(LinkTest, Capacity)
+{
+	Link link;
+
+	Status status;
+	SlicePosition position;
+
+	std::tie(status, position) = link.getFirstFreeSlices(100);
+
+	EXPECT_EQ(link.allocate(position, 100, 2), Status::Ok);
+
+	EXPECT_EQ(link.getCurrentCapacity(), 100);
+
+	std::tie(status, position) = link.getFirstFreeSlices(Link::numOfSlices);
+
+	EXPECT_EQ(link.allocate(position, Link::numOfSlices, 2), Status::Ok);
+
+	EXPECT_EQ(link.getCurrentCapacity(), 100 + Link::numOfSlices);
 }
