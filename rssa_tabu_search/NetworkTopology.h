@@ -15,7 +15,6 @@ struct LinkDescription
 {
 	Place source;
 	Place destination;
-	Distance distance;
 
 	LinkDescription(Place src, Place dst) : source(src), destination(dst) {}
 
@@ -28,7 +27,7 @@ struct LinkDescription
 	}
 };
 
-using Route = std::list<std::pair<Place, Place>>;
+using Route = std::list<LinkDescription>;
 
 using Links = std::map<const LinkDescription, Link>;
 
@@ -41,9 +40,10 @@ public:
 	void addLink(const LinkDescription linkDescription);
 	unsigned getCurrentCapacity() const;
 
+	std::tuple<Status, Links::iterator> checkIfPositionFitsInEveryLink(const Route route, const SlicePosition position, const unsigned short requiredSlices);
 	std::tuple<Status, SlicePosition> getFirstFreeChannel(unsigned short requiredSlices, Route route);
 
-	std::tuple<Status, Links::iterator> checkIfPositionFitInEveryLink(const Route route, const SlicePosition position, const unsigned short requiredSlices);
+	void allocate(const Route route, const SlicePosition slicePosition, unsigned short requiredSlices, unsigned short time);
 private:
 
 	Links links;

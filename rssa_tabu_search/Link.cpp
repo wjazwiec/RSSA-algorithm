@@ -11,14 +11,14 @@ Link::~Link()
 {
 }
 
-std::tuple<Status, SlicePosition> Link::getFirstFreeSlices(unsigned short requiredSlices)
+std::tuple<Status, SlicePosition> Link::getFirstFreeSlices(unsigned short requiredSlices, SlicePosition startFrom)
 {
 	if (requiredSlices > numOfSlices)
 		return { Status::NotOk, {} };
 
-	for (Index core = 0; core < slices.size(); core++)
+	for (Index core = startFrom.core; core < slices.size(); core++)
 	{
-		Index sliceIndex = 0;
+		Index sliceIndex = startFrom.slice;
 
 		while (sliceIndex < slices[core].size())
 		{

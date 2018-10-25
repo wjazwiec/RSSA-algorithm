@@ -33,7 +33,7 @@ public:
 	Link();
 	~Link();
 
-	std::tuple<Status, SlicePosition> getFirstFreeSlices(unsigned short requiredSlices);
+	std::tuple<Status, SlicePosition> getFirstFreeSlices(unsigned short requiredSlices, SlicePosition startFrom = SlicePosition{});
 	bool canAllocate(SlicePosition position, unsigned short requiredSlices) const;
 	Status allocate(SlicePosition position, unsigned short requiredSlices, unsigned short time);
 	void decrementTime();

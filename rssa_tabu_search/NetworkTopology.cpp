@@ -25,11 +25,9 @@ unsigned NetworkTopology::getCurrentCapacity() const
 
 std::tuple<Status, SlicePosition> NetworkTopology::getFirstFreeChannel(unsigned short requiredSlices, Route route)
 {
-	Links::iterator link = links.begin();
+	auto& link = links[route.front()];
 
-	std::set<SlicePosition> forbiddenSlices;
-
-	auto[status, proposalSlicePosition] = link->second.getFirstFreeSlices(requiredSlices);
+	auto[status, proposalSlicePosition] = link.getFirstFreeSlices(requiredSlices);
 
 	if (status == Status::NotOk)
 	{
@@ -37,7 +35,7 @@ std::tuple<Status, SlicePosition> NetworkTopology::getFirstFreeChannel(unsigned 
 	}
 	while (true)
 	{
-		auto[everyPositionStatus, linkNotFillingRequirements] = checkIfPositionFitInEveryLink(route, proposalSlicePosition, requiredSlices);
+		auto[everyPositionStatus, linkNotFillingRequirements] = checkIfPositionFitsInEveryLink(route, proposalSlicePosition, requiredSlices);
 
 		if (everyPositionStatus == Status::NotOk)
 		{
@@ -47,8 +45,7 @@ std::tuple<Status, SlicePosition> NetworkTopology::getFirstFreeChannel(unsigned 
 			}
 			else
 			{
-				forbiddenSlices.insert(proposalSlicePosition);
-				linkNotFillingRequirements->second.getFirstFreeSlices(requiredSlices);
+				std::tie(status, proposalSlicePosition) = linkNotFillingRequirements->second.getFirstFreeSlices(requiredSlices, proposalSlicePosition);
 			}
 		}
 		else
@@ -59,17 +56,29 @@ std::tuple<Status, SlicePosition> NetworkTopology::getFirstFreeChannel(unsigned 
 	return std::tuple<Status, SlicePosition>();
 }
 
-
-
-std::tuple<Status, Links::iterator> NetworkTopology::checkIfPositionFitInEveryLink(const Route route, const SlicePosition position, const unsigned short requiredSlices)
+void NetworkTopology::allocate(const Route route, const SlicePosition slicePosition, unsigned short requiredSlices, unsigned short time)
 {
-	for (const auto [source, destination] : route)
+	for (const auto& linkDescription : route)
 	{
-		auto linkIt = links.begin();//getLink(source, destination);
+		auto linkIt = links.find(linkDescription);
+
+		auto& link = linkIt->second;
+
+		link.allocate(slicePosition, requiredSlices, time);
+	}
+}
+
+
+
+std::tuple<Status, Links::iterator> NetworkTopology::checkIfPositionFitsInEveryLink(const Route route, const SlicePosition position, const unsigned short requiredSlices)
+{
+	for (const auto& linkDescription : route)
+	{
+		auto linkIt = links.find(linkDescription);
 		
 		if (linkIt == links.end())
 		{
-			return { Status::NotOk, links.end() }; //cannot find link - it schouldn't happend
+			return { Status::NotOk, links.end() }; //cannot find link - it shouldn't happend
 		}
 
 		if (linkIt->second.canAllocate(position, requiredSlices) == false)
