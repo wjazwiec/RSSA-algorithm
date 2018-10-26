@@ -29,6 +29,12 @@ struct LinkDescription
 
 using Route = std::list<LinkDescription>;
 
+using RouteDescription = LinkDescription;
+
+using SamePlaceRoutes = std::vector<Route>;
+
+using Routes = std::map<const RouteDescription, SamePlaceRoutes>;
+
 using Links = std::map<const LinkDescription, Link>;
 
 class NetworkTopology
@@ -38,7 +44,11 @@ public:
 	~NetworkTopology();
 
 	void addLink(const LinkDescription linkDescription);
+	void addRoute(const RouteDescription routeDescription, const Route route);
+
 	unsigned getCurrentCapacity() const;
+
+	double getRouteCurrentCapacity(const Route& route) const;
 
 	std::tuple<Status, Links::iterator> checkIfPositionFitsInEveryLink(const Route route, const SlicePosition position, const unsigned short requiredSlices);
 	std::tuple<Status, SlicePosition> getFirstFreeChannel(unsigned short requiredSlices, Route route);
@@ -47,5 +57,6 @@ public:
 private:
 
 	Links links;
+	Routes routes;
 };
 

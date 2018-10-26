@@ -41,7 +41,7 @@ public:
 	unsigned getCurrentCapacity() const;
 
 	static const size_t numOfSlices = 360;
-	static const size_t numOfCores = 30;
+	static const size_t numOfCores = 7;
 
 	using Core = std::array<Slice, numOfSlices>;
 	using Fibre = std::array<Core, numOfCores>;

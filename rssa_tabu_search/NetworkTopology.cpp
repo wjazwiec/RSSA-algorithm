@@ -15,12 +15,44 @@ void NetworkTopology::addLink(const LinkDescription linkDescription)
 	links.try_emplace(linkDescription);
 }
 
+void NetworkTopology::addRoute(const RouteDescription routeDescription, const Route route)
+{
+	if (routes.find(routeDescription) == routes.end())
+	{
+		routes[routeDescription] = { route };
+	}
+	else
+	{
+		routes[routeDescription].push_back(route);
+	}
+}
+
 unsigned NetworkTopology::getCurrentCapacity() const
 {
 	return std::accumulate(links.begin(), links.end(), 0, [](unsigned value, const Links::value_type& p)
 	{ 
 		return value + p.second.getCurrentCapacity(); 
 	});
+}
+
+double NetworkTopology::getRouteCurrentCapacity(const Route& route) const
+{
+	unsigned takenSlices = 0;
+
+	for (const auto& linkDescription : route)
+	{
+		const auto linkIt = links.find(linkDescription);
+
+		const auto& link = linkIt->second;
+
+		takenSlices += link.getCurrentCapacity();
+	}
+	
+	auto linksInRoute = route.size();
+
+	double slicesInLink = Link::numOfCores * Link::numOfSlices;
+
+	return ((static_cast<double>(takenSlices) / (slicesInLink)) * 100.0);
 }
 
 std::tuple<Status, SlicePosition> NetworkTopology::getFirstFreeChannel(unsigned short requiredSlices, Route route)
