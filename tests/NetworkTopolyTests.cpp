@@ -15,6 +15,7 @@ protected:
 	NetworkTopology m_networkTopology;
 	Status m_status;
 };
+
 TEST_F(NetworkTopologyTest, SimpleFitsInFirstPosition) 
 {
 	Links::iterator iterator;
@@ -70,11 +71,18 @@ TEST_F(NetworkTopologyTest, CapacityMeasurements)
 	EXPECT_EQ(m_networkTopology.getRouteCurrentCapacity(route), 10);
 }
 
-TEST_F(NetworkTopologyTest, CapacityMeasurements)
+TEST_F(NetworkTopologyTest, BestRoutes)
 {
-	Route route{ {0,1} };
+	RouteDescription routeDescription{ 0, 1 };
 
-	m_networkTopology.addRoute(RouteDescription{ 0, 1 }, Route{ {0, 1} });
-	m_networkTopology.addRoute(RouteDescription{ 0, 3 }, Route{ {0, 1}, {1, 2}, {2, 3} });
+	m_networkTopology.addRoute(routeDescription, Route{ {0, 1} });
+	m_networkTopology.addRoute(routeDescription, Route{ {0, 2}, {2, 3}, {3, 1} });
+
+	SamePlaceRoutes routes;
+
+	std::tie(m_status, routes) = m_networkTopology.getBestRoutes(routeDescription);
+
+	EXPECT_EQ(m_status, Status::Ok);
+	EXPECT_EQ(routes.size(), 2);
 }
 

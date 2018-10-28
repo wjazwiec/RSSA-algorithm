@@ -27,6 +27,39 @@ void NetworkTopology::addRoute(const RouteDescription routeDescription, const Ro
 	}
 }
 
+std::tuple<Status, SamePlaceRoutes> NetworkTopology::getBestRoutes(const RouteDescription routeDescription)
+{
+	double currentBestScore = std::numeric_limits<double>::max();
+
+	auto& candidatesRoutes = routes[routeDescription];
+
+	SamePlaceRoutes bestRoutes{};
+
+	for (const auto &route : candidatesRoutes)
+	{
+		double routeCapacity = getRouteCurrentCapacity(route);
+
+		if (routeCapacity < currentBestScore)
+		{
+			bestRoutes.clear();
+			bestRoutes.push_back(route);
+		}
+		else if (routeCapacity == currentBestScore)
+		{
+			bestRoutes.push_back(route);
+		}
+	}
+
+	if (bestRoutes.empty())
+	{
+		return { Status::NotOk, {} };
+	}
+	else
+	{
+		return { Status::Ok, bestRoutes };
+	}
+}
+
 unsigned NetworkTopology::getCurrentCapacity() const
 {
 	return std::accumulate(links.begin(), links.end(), 0, [](unsigned value, const Links::value_type& p)

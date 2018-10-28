@@ -45,6 +45,8 @@ public:
 
 	void addLink(const LinkDescription linkDescription);
 	void addRoute(const RouteDescription routeDescription, const Route route);
+	
+	std::tuple<Status, SamePlaceRoutes> getBestRoutes(const RouteDescription routeDescription);
 
 	unsigned getCurrentCapacity() const;
 
