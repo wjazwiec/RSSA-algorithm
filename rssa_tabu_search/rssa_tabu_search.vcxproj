@@ -117,11 +117,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Controller.cpp" />
+    <ClCompile Include="DataLoader.cpp" />
+    <ClCompile Include="DataLoaderFromFile.cpp" />
     <ClCompile Include="Link.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="NetworkTopology.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Controller.h" />
+    <ClInclude Include="DataLoader.h" />
+    <ClInclude Include="DataLoaderFromFile.h" />
     <ClInclude Include="Link.h" />
     <ClInclude Include="NetworkTopology.h" />
     <ClInclude Include="OperationStatus.h" />
@@ -129,6 +135,9 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="rssa_tabu_search.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ClassDiagram.cd" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

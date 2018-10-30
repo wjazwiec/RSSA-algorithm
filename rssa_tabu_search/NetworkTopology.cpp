@@ -27,7 +27,7 @@ void NetworkTopology::addRoute(const RouteDescription routeDescription, const Ro
 	}
 }
 
-std::tuple<Status, SamePlaceRoutes> NetworkTopology::getBestRoutes(const RouteDescription routeDescription)
+std::tuple<Status, SamePlaceRoutes> NetworkTopology::getBestRoutes(const RouteDescription routeDescription, const short bitRate, const double possibleDiffrenceWithBest)
 {
 	double currentBestScore = std::numeric_limits<double>::max();
 
@@ -37,10 +37,23 @@ std::tuple<Status, SamePlaceRoutes> NetworkTopology::getBestRoutes(const RouteDe
 
 	for (const auto &route : candidatesRoutes)
 	{
-		double routeCapacity = getRouteCurrentCapacity(route);
+		short requiredSlices = getRequiredSlices(route, bitRate);
+
+		//First, check if allocation is possible
+		Status status;
+
+		std::tie(status, std::ignore) = getFirstFreeChannel(requiredSlices, route);
+		if (status == Status::NotOk)
+		{
+			continue;
+		}
+
+		double routeCapacity = getRouteCurrentCapacity(route) - possibleDiffrenceWithBest;
 
 		if (routeCapacity < currentBestScore)
 		{
+			currentBestScore = routeCapacity;
+
 			bestRoutes.clear();
 			bestRoutes.push_back(route);
 		}
@@ -72,7 +85,7 @@ double NetworkTopology::getRouteCurrentCapacity(const Route& route) const
 {
 	unsigned takenSlices = 0;
 
-	for (const auto& linkDescription : route)
+	for (const auto& linkDescription : route.links)
 	{
 		const auto linkIt = links.find(linkDescription);
 
@@ -81,16 +94,23 @@ double NetworkTopology::getRouteCurrentCapacity(const Route& route) const
 		takenSlices += link.getCurrentCapacity();
 	}
 	
-	auto linksInRoute = route.size();
+	auto linksInRoute = route.links.size();
 
 	double slicesInLink = Link::numOfCores * Link::numOfSlices;
 
 	return ((static_cast<double>(takenSlices) / (slicesInLink)) * 100.0);
 }
 
+std::tuple<Status, SlicePosition> NetworkTopology::getFirstFreeChannel(Route route, const short bitRate)
+{
+	short requiredSlices = getRequiredSlices(route, bitRate);
+
+	return getFirstFreeChannel(requiredSlices, route);
+}
+
 std::tuple<Status, SlicePosition> NetworkTopology::getFirstFreeChannel(unsigned short requiredSlices, Route route)
 {
-	auto& link = links[route.front()];
+	auto& link = links[route.links.front()];
 
 	auto[status, proposalSlicePosition] = link.getFirstFreeSlices(requiredSlices);
 
@@ -118,12 +138,13 @@ std::tuple<Status, SlicePosition> NetworkTopology::getFirstFreeChannel(unsigned 
 			return { Status::Ok, proposalSlicePosition };
 		}
 	}
-	return std::tuple<Status, SlicePosition>();
+
+	return { Status::NotOk, {} };
 }
 
 void NetworkTopology::allocate(const Route route, const SlicePosition slicePosition, unsigned short requiredSlices, unsigned short time)
 {
-	for (const auto& linkDescription : route)
+	for (const auto& linkDescription : route.links)
 	{
 		auto linkIt = links.find(linkDescription);
 
@@ -133,17 +154,22 @@ void NetworkTopology::allocate(const Route route, const SlicePosition slicePosit
 	}
 }
 
+void NetworkTopology::allocateWithBitrate(const Route route, const SlicePosition slicePosition, const short bitRate, unsigned short time)
+{
+	short requiredSlices = getRequiredSlices(route, bitRate);
 
+	return allocate(route, slicePosition, requiredSlices, time);
+}
 
 std::tuple<Status, Links::iterator> NetworkTopology::checkIfPositionFitsInEveryLink(const Route route, const SlicePosition position, const unsigned short requiredSlices)
 {
-	for (const auto& linkDescription : route)
+	for (const auto& linkDescription : route.links)
 	{
 		auto linkIt = links.find(linkDescription);
 		
 		if (linkIt == links.end())
 		{
-			return { Status::NotOk, links.end() }; //cannot find link - it shouldn't happend
+			return { Status::NotOk, links.end() };
 		}
 
 		if (linkIt->second.canAllocate(position, requiredSlices) == false)

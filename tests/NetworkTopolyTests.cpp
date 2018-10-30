@@ -1,5 +1,6 @@
 #include "gtest/gtest.h"
 #include "../rssa_tabu_search/NetworkTopology.h"
+#include "../rssa_tabu_search/DataLoaderFromFile.h"
 
 class NetworkTopologyTest : public ::testing::Test
 {
@@ -7,9 +8,12 @@ protected:
 	void SetUp() override
 	{
 		m_networkTopology.addLink(LinkDescription(0, 1));
+		m_networkTopology.addLink(LinkDescription(0, 2));
 		m_networkTopology.addLink(LinkDescription(1, 2));
 		m_networkTopology.addLink(LinkDescription(2, 4));
+		m_networkTopology.addLink(LinkDescription(2, 3));
 		m_networkTopology.addLink(LinkDescription(4, 3));
+		m_networkTopology.addLink(LinkDescription(3, 1));
 	}
 
 	NetworkTopology m_networkTopology;
@@ -20,7 +24,7 @@ TEST_F(NetworkTopologyTest, SimpleFitsInFirstPosition)
 {
 	Links::iterator iterator;
 
-	std::tie(m_status, iterator) = m_networkTopology.checkIfPositionFitsInEveryLink(Route({ {1,2}, {2,4}, {4,3} }), SlicePosition{ 0,0 }, 100);
+	std::tie(m_status, iterator) = m_networkTopology.checkIfPositionFitsInEveryLink(Route({ { {1,2}, {2,4}, {4,3} }, {} }), SlicePosition{ 0,0 }, 100);
 	
 	EXPECT_EQ(m_status, Status::Ok);
 }
@@ -29,8 +33,8 @@ TEST_F(NetworkTopologyTest, FirstFreeChannelBasic)
 	Status status;
 	SlicePosition slicePosition;
 
-	Route route({ {1,2}, {2,4}, {4,3} });
-	Route route_2({{2,4}, {4,3} });
+	Route route({ { {1,2}, {2,4}, {4,3} }, {} });
+	Route route_2({ {{2,4}, {4,3} }, {} });
 
 	std::tie(status, slicePosition) = m_networkTopology.getFirstFreeChannel(100, route);
 
@@ -59,7 +63,7 @@ TEST_F(NetworkTopologyTest, FirstFreeChannelBasic)
 
 TEST_F(NetworkTopologyTest, CapacityMeasurements)
 {
-	Route route{ {0,1} };
+	Route route{ { {0,1} }, {} };
 
 	unsigned requiredSlices = 252; // 10%
 
@@ -75,14 +79,13 @@ TEST_F(NetworkTopologyTest, BestRoutes)
 {
 	RouteDescription routeDescription{ 0, 1 };
 
-	m_networkTopology.addRoute(routeDescription, Route{ {0, 1} });
-	m_networkTopology.addRoute(routeDescription, Route{ {0, 2}, {2, 3}, {3, 1} });
+	m_networkTopology.addRoute(routeDescription, Route{ {{0, 1}} , {} });
+	m_networkTopology.addRoute(routeDescription, Route{ { {0, 2}, {2, 3}, {3, 1} }, {} });
 
 	SamePlaceRoutes routes;
 
-	std::tie(m_status, routes) = m_networkTopology.getBestRoutes(routeDescription);
+	std::tie(m_status, routes) = m_networkTopology.getBestRoutes(routeDescription, 100);
 
 	EXPECT_EQ(m_status, Status::Ok);
 	EXPECT_EQ(routes.size(), 2);
 }
-

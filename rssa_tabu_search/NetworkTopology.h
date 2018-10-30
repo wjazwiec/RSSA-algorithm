@@ -23,11 +23,28 @@ struct LinkDescription
 	}
 
 	bool const operator<(const LinkDescription &o) const {
-		return source < o.source || (destination == o.destination && source < o.source);
+		return source < o.source || (source == o.source && destination < o.destination);
 	}
 };
 
-using Route = std::list<LinkDescription>;
+struct Route
+{
+	std::list<LinkDescription> links;
+	std::array<unsigned, 20> requiredSlices;
+};
+
+
+static unsigned getRequiredSlices(const Route& route, const short bitRate)
+{
+	if (bitRate == 0)
+		return 0;
+
+	if (((bitRate-1)/50)> 20)
+		return 0;
+
+	return route.requiredSlices[((bitRate - 1) / 50)];
+}
+
 
 using RouteDescription = LinkDescription;
 
@@ -46,16 +63,18 @@ public:
 	void addLink(const LinkDescription linkDescription);
 	void addRoute(const RouteDescription routeDescription, const Route route);
 	
-	std::tuple<Status, SamePlaceRoutes> getBestRoutes(const RouteDescription routeDescription);
+	double getRouteCurrentCapacity(const Route& route) const;
+
+	std::tuple<Status, SamePlaceRoutes> getBestRoutes(const RouteDescription routeDescription, const short bitRate, const double possibleDiffrenceWithBest = 0);
 
 	unsigned getCurrentCapacity() const;
 
-	double getRouteCurrentCapacity(const Route& route) const;
-
 	std::tuple<Status, Links::iterator> checkIfPositionFitsInEveryLink(const Route route, const SlicePosition position, const unsigned short requiredSlices);
 	std::tuple<Status, SlicePosition> getFirstFreeChannel(unsigned short requiredSlices, Route route);
+	std::tuple<Status, SlicePosition> getFirstFreeChannel(Route route, const short bitRate);
 
 	void allocate(const Route route, const SlicePosition slicePosition, unsigned short requiredSlices, unsigned short time);
+	void allocateWithBitrate(const Route route, const SlicePosition slicePosition, const short bitRate, unsigned short time);
 private:
 
 	Links links;
