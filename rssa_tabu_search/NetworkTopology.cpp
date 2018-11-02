@@ -1,6 +1,5 @@
 #include "NetworkTopology.h"
 
-
 NetworkTopology::NetworkTopology()
 {
 }
@@ -48,16 +47,20 @@ std::tuple<Status, SamePlaceRoutes> NetworkTopology::getBestRoutes(const RouteDe
 			continue;
 		}
 
-		double routeCapacity = getRouteCurrentCapacity(route) - possibleDiffrenceWithBest;
+		double trueRouteCapacity = getRouteCurrentCapacity(route);
+		double routeCapacity = trueRouteCapacity - possibleDiffrenceWithBest;
 
-		if (routeCapacity < currentBestScore)
+		if (trueRouteCapacity < currentBestScore)
 		{
-			currentBestScore = routeCapacity;
+			if (currentBestScore > trueRouteCapacity)
+			{
+				currentBestScore = trueRouteCapacity;
+			}
 
 			bestRoutes.clear();
 			bestRoutes.push_back(route);
 		}
-		else if (routeCapacity == currentBestScore)
+		else if (routeCapacity <= currentBestScore)
 		{
 			bestRoutes.push_back(route);
 		}
@@ -96,9 +99,9 @@ double NetworkTopology::getRouteCurrentCapacity(const Route& route) const
 	
 	auto linksInRoute = route.links.size();
 
-	double slicesInLink = Link::numOfCores * Link::numOfSlices;
+	double slicesInLinks = static_cast<double>(Link::numOfCores * Link::numOfSlices * linksInRoute);
 
-	return ((static_cast<double>(takenSlices) / (slicesInLink)) * 100.0);
+	return ((static_cast<double>(takenSlices) / (slicesInLinks)) * 100.0);
 }
 
 std::tuple<Status, SlicePosition> NetworkTopology::getFirstFreeChannel(Route route, const short bitRate)
@@ -131,6 +134,9 @@ std::tuple<Status, SlicePosition> NetworkTopology::getFirstFreeChannel(unsigned 
 			else
 			{
 				std::tie(status, proposalSlicePosition) = linkNotFillingRequirements->second.getFirstFreeSlices(requiredSlices, proposalSlicePosition);
+				
+				if (status == Status::NotOk && proposalSlicePosition.slice == 0 && proposalSlicePosition.core == 0)
+					break;
 			}
 		}
 		else
@@ -159,6 +165,14 @@ void NetworkTopology::allocateWithBitrate(const Route route, const SlicePosition
 	short requiredSlices = getRequiredSlices(route, bitRate);
 
 	return allocate(route, slicePosition, requiredSlices, time);
+}
+
+void NetworkTopology::tick()
+{
+	for (auto& linkPair : links)
+	{
+		linkPair.second.decrementTime();
+	}
 }
 
 std::tuple<Status, Links::iterator> NetworkTopology::checkIfPositionFitsInEveryLink(const Route route, const SlicePosition position, const unsigned short requiredSlices)

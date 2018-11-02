@@ -41,6 +41,8 @@ void DataLoaderFromFile::loadNetworkTopology(NetworkTopology & networkTopology)
 			}
 		}
 	}
+
+	infile.close();
 }
 
 void DataLoaderFromFile::loadPossibleRoutes(NetworkTopology & networkTopology)
@@ -65,6 +67,9 @@ void DataLoaderFromFile::loadPossibleRoutes(NetworkTopology & networkTopology)
 	{
 		for (Place destination = 0; destination < networkNodes; destination++)
 		{
+			if (source == destination)
+				continue;
+				
 			for (auto i = 0; i < 30; i++)
 			{
 				Route route;
@@ -90,6 +95,9 @@ void DataLoaderFromFile::loadPossibleRoutes(NetworkTopology & networkTopology)
 			}
 		}
 	}
+
+	infile.close();
+	helperFile.close();
 }
 
 Demands DataLoaderFromFile::loadDemands() { return {}; }
@@ -121,6 +129,8 @@ Demands DataLoaderFromFile::loadDemands(const FileName demandsFile)
 			demands.push(Demand{ iteration, source, target, bitrate, time });
 		}
 	}
+
+	fileHandle.close();
 
 	return demands;
 }

@@ -3,7 +3,10 @@
 #include <random>
 #include <iterator>
 #include <algorithm>
-
+#include <Windows.h>
+#include <iostream>
+#include <string>
+#include <time.h>
 
 void Controller::loadStaticData()
 {
@@ -20,15 +23,15 @@ void Controller::loadDemands(const FileName demands)
 
 Route getRandomRoute(SamePlaceRoutes& routes)
 {
-	//Route route;
-	//std::sample(routes.begin(), routes.end(), std::back_inserter(route),
-	//	1, std::mt19937{ std::random_device{}() });
+	Index randIndex = (rand() % routes.size() + 1) - 1;
 
-	return routes[0];
+	return routes[randIndex];
 }
 
 void Controller::processDemand(Demand demand)
 {
+	controlIterations(demand.iteration);
+
 	outputVariables.bitrate.allIncoming += demand.bitRate;
 	outputVariables.demands.allIncoming++;
 
@@ -64,6 +67,31 @@ void Controller::setAlgVariables(AlgorithmVariables algorithmVariables)
 	this->algorithmVariables = algorithmVariables;
 }
 
+void Controller::doAlgorithm()
+{
+	iteration = 0;
+
+	while (!currentDemands.empty())
+	{
+		std::string s = std::to_string(iteration) + "\n";
+		char const *pchar = s.c_str();  //use char const* as target type
+
+		OutputDebugString(pchar);
+
+		processDemand(currentDemands.front());
+		currentDemands.pop();
+	}
+}
+
+void Controller::controlIterations(const short newIteration)
+{
+	if (newIteration > iteration)
+	{
+		networkTopology.tick();
+		iteration = newIteration;
+	}
+}
+
 Controller::Controller() : algorithmVariables{ 0 }, outputVariables{}
 {
 }
@@ -71,4 +99,5 @@ Controller::Controller() : algorithmVariables{ 0 }, outputVariables{}
 
 Controller::~Controller()
 {
+	srand(time(NULL));
 }

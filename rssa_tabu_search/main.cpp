@@ -1,9 +1,8 @@
-#include "Link.h"
-#include "DataLoaderFromFile.h"
-#include "NetworkTopology.h"
+#include "Controller.h"
 
 int main()
 {
+	system("pause");
 
 	return 0;
 }

@@ -7,6 +7,7 @@
 #include <functional>
 #include <numeric>
 #include <set>
+#include <vector>
 
 using Place = unsigned short;
 using Distance = unsigned short;
@@ -39,8 +40,8 @@ static unsigned getRequiredSlices(const Route& route, const short bitRate)
 	if (bitRate == 0)
 		return 0;
 
-	if (((bitRate-1)/50)> 20)
-		return 0;
+	if (((bitRate-1)/50)>= 20)
+		return route.requiredSlices[19];
 
 	return route.requiredSlices[((bitRate - 1) / 50)];
 }
@@ -75,6 +76,7 @@ public:
 
 	void allocate(const Route route, const SlicePosition slicePosition, unsigned short requiredSlices, unsigned short time);
 	void allocateWithBitrate(const Route route, const SlicePosition slicePosition, const short bitRate, unsigned short time);
+	void tick();
 private:
 
 	Links links;

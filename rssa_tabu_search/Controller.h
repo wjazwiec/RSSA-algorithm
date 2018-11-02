@@ -32,12 +32,16 @@ public:
 	void processDemand(Demand demand);
 
 	void setAlgVariables(AlgorithmVariables algorithmVariables);
+
+	void doAlgorithm();
+	void controlIterations(const short iteration);
+
 	Demands currentDemands;
 	OutputVariables outputVariables;
 private:
 	AlgorithmVariables algorithmVariables;
-
 	NetworkTopology networkTopology;
+	short iteration;
 
 };
 

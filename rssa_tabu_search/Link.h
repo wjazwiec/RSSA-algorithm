@@ -40,19 +40,21 @@ public:
 
 	unsigned getCurrentCapacity() const;
 
-	static const size_t numOfSlices = 360;
+	static const size_t numOfSlices = 320;
 	static const size_t numOfCores = 7;
 
 	using Core = std::array<Slice, numOfSlices>;
 	using Fibre = std::array<Core, numOfCores>;
 
 private:
-	void changeForwardSlices(SlicePosition startPosition, unsigned short requiredSlices, unsigned short time);
-	void changeBackwardSlices(SlicePosition startPosition);
 	std::tuple<Status, Index> getIndexOfNextPositiveSlice(const Core& core, Index index) const;
 	void initialize();
 
-	void handleDecrementTimeToZero(Core& core, Index index);
+	void handleDecrementTimeToZero(Core& core, Index index, const short distance);
+
+	void allocationOnTheFirstPosition(SlicePosition startPosition, unsigned short requiredSlices, unsigned short time);
+	void allocationInTheMiddle(SlicePosition startPosition, unsigned short requiredSlices, unsigned short time);
+	void allocationToTheEnd(SlicePosition startPosition, unsigned short requiredSlices, unsigned short time);
 
 	Fibre slices;
 };
