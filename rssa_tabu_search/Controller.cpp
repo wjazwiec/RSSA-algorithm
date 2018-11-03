@@ -1,5 +1,4 @@
 #include "Controller.h"
-
 #include <random>
 #include <iterator>
 #include <algorithm>
@@ -7,6 +6,7 @@
 #include <iostream>
 #include <string>
 #include <time.h>
+#include <chrono>
 
 void Controller::loadStaticData()
 {
@@ -14,11 +14,17 @@ void Controller::loadStaticData()
 
 	loader->loadNetworkTopology(networkTopology);
 	loader->loadPossibleRoutes(networkTopology);
+
+	networkTopology_base = networkTopology;
 }
 
 void Controller::loadDemands(const FileName demands)
 {
+	std::cout << "Loading file " << demands << std::endl;
 	currentDemands = DataLoaderFromFile::loadDemands(demands);
+
+	outputVariables = {};
+	networkTopology = networkTopology_base;
 }
 
 Route getRandomRoute(SamePlaceRoutes& routes)
@@ -69,18 +75,29 @@ void Controller::setAlgVariables(AlgorithmVariables algorithmVariables)
 
 void Controller::doAlgorithm()
 {
+	std::cout << "Alg start" << std::endl;
+	auto start = std::chrono::high_resolution_clock::now();
+
 	iteration = 0;
 
 	while (!currentDemands.empty())
 	{
+#if 0
 		std::string s = std::to_string(iteration) + "\n";
 		char const *pchar = s.c_str();  //use char const* as target type
 
 		OutputDebugString(pchar);
-
+#endif
 		processDemand(currentDemands.front());
 		currentDemands.pop();
 	}
+
+	auto finish = std::chrono::high_resolution_clock::now();
+
+	std::chrono::duration<double> elapsed = finish - start;
+
+	std::cout << std::endl << "Elapsed time: " << elapsed.count() << " s\n";
+	std::cout << "Demands all:" << outputVariables.demands.allIncoming << " served:" << outputVariables.demands.served << " rejected:" << outputVariables.demands.rejected << std::endl;
 }
 
 void Controller::controlIterations(const short newIteration)
@@ -89,6 +106,11 @@ void Controller::controlIterations(const short newIteration)
 	{
 		networkTopology.tick();
 		iteration = newIteration;
+
+		if (iteration % 200 == 0)
+		{
+			std::cout << "|";
+		}
 	}
 }
 

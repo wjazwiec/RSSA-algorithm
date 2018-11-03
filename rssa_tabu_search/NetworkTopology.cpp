@@ -52,10 +52,8 @@ std::tuple<Status, SamePlaceRoutes> NetworkTopology::getBestRoutes(const RouteDe
 
 		if (trueRouteCapacity < currentBestScore)
 		{
-			if (currentBestScore > trueRouteCapacity)
-			{
-				currentBestScore = trueRouteCapacity;
-			}
+
+			currentBestScore = trueRouteCapacity;
 
 			bestRoutes.clear();
 			bestRoutes.push_back(route);

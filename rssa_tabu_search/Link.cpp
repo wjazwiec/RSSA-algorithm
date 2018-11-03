@@ -172,33 +172,6 @@ void Link::initialize()
 
 void Link::handleDecrementTimeToZero(Core & core, Index index, const short distance)
 {
-	//auto[status, nextPositiveIndex] = getIndexOfNextPositiveSlice(core, index);
-	//if (status == Status::Ok)
-	//{
-	//	short nextPositiveValue = core[nextPositiveIndex].value + 1;
-
-	//	nextPositiveIndex--; //To get one element before
-
-	//	while (nextPositiveIndex >= 0
-	//		&& nextPositiveIndex < numOfSlices
-	//		&& core[nextPositiveIndex].value < 0
-	//		&& nextPositiveIndex >= index)
-	//	{
-	//		core[nextPositiveIndex].value = nextPositiveValue++;
-	//		core[nextPositiveIndex].remainingTime = 0;
-
-	//		nextPositiveIndex--;
-	//	}
-	//}
-	//else //status not ok - slice is last channel. It's enough to do abs
-	//{
-	//	while (index < numOfSlices)
-	//	{
-	//		core[index].value = abs(core[index].value);
-	//		core[index].remainingTime = 0;
-	//	}
-	//}
-
 	if (index == 0)
 	{
 		short naxtValueAfterFinishedPeriod = core[index + distance].value;

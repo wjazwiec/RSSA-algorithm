@@ -40,7 +40,7 @@ public:
 	OutputVariables outputVariables;
 private:
 	AlgorithmVariables algorithmVariables;
-	NetworkTopology networkTopology;
+	NetworkTopology networkTopology, networkTopology_base;
 	short iteration;
 
 };
