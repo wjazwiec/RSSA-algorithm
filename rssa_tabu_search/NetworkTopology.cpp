@@ -26,6 +26,37 @@ void NetworkTopology::addRoute(const RouteDescription routeDescription, const Ro
 	}
 }
 
+void NetworkTopology::addRouteToBestIfFits(SamePlaceRoutes& bestRoutes, const Route& candidate, const double possibleDiffrenceWithBest)
+{
+	static double currentBestRouteCapacity;
+
+	// If first iteration
+	if (bestRoutes.empty())
+	{
+		currentBestRouteCapacity = std::numeric_limits<double>::max();
+	}
+
+	double routeCapacity = getRouteCurrentCapacity(candidate);
+	double routeCapacityAfterAlgorithmVariableApplied = routeCapacity - possibleDiffrenceWithBest;
+
+	if (currentBestRouteCapacity <= routeCapacity && currentBestRouteCapacity >= routeCapacityAfterAlgorithmVariableApplied)
+	{
+		bestRoutes.push_back(candidate);
+	}
+	else if (routeCapacity < currentBestRouteCapacity)
+	{
+		if (!bestRoutes.empty())
+		{
+			bestRoutes.erase(std::remove_if(bestRoutes.begin(), bestRoutes.end(), [&](Route route) {
+				return ((getRouteCurrentCapacity(route) - possibleDiffrenceWithBest) >= routeCapacity);
+			}), bestRoutes.end());
+		}
+
+		bestRoutes.push_back(candidate);
+		currentBestRouteCapacity = routeCapacity;
+	}
+}
+
 std::tuple<Status, SamePlaceRoutes> NetworkTopology::getBestRoutes(const RouteDescription routeDescription, const short bitRate, const double possibleDiffrenceWithBest)
 {
 	double currentBestScore = std::numeric_limits<double>::max();
@@ -38,30 +69,16 @@ std::tuple<Status, SamePlaceRoutes> NetworkTopology::getBestRoutes(const RouteDe
 	{
 		short requiredSlices = getRequiredSlices(route, bitRate);
 
-		//First, check if allocation is possible
 		Status status;
 
 		std::tie(status, std::ignore) = getFirstFreeChannel(requiredSlices, route);
+
 		if (status == Status::NotOk)
 		{
 			continue;
 		}
 
-		double trueRouteCapacity = getRouteCurrentCapacity(route);
-		double routeCapacity = trueRouteCapacity - possibleDiffrenceWithBest;
-
-		if (trueRouteCapacity < currentBestScore)
-		{
-
-			currentBestScore = trueRouteCapacity;
-
-			bestRoutes.clear();
-			bestRoutes.push_back(route);
-		}
-		else if (routeCapacity <= currentBestScore)
-		{
-			bestRoutes.push_back(route);
-		}
+		addRouteToBestIfFits(bestRoutes, route, possibleDiffrenceWithBest);
 	}
 
 	if (bestRoutes.empty())

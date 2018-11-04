@@ -63,6 +63,8 @@ public:
 
 	void addLink(const LinkDescription linkDescription);
 	void addRoute(const RouteDescription routeDescription, const Route route);
+
+	void addRouteToBestIfFits(SamePlaceRoutes & bestRoutes, const Route & candidate, const double possibleDiffrenceWithBest);
 	
 	double getRouteCurrentCapacity(const Route& route) const;
 

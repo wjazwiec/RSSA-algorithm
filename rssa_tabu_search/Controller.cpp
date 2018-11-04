@@ -12,10 +12,10 @@ void Controller::loadStaticData()
 {
 	auto loader = DataLoaderFromFile::createLoaderFromFile("Euro28/ff.net", "Euro28/ff30.pat", "Euro28/f30.spec");
 
-	loader->loadNetworkTopology(networkTopology);
-	loader->loadPossibleRoutes(networkTopology);
+	loader->loadNetworkTopology(networkTopology_base);
+	loader->loadPossibleRoutes(networkTopology_base);
 
-	networkTopology_base = networkTopology;
+	networkTopology = NetworkTopology(networkTopology_base);
 }
 
 void Controller::loadDemands(const FileName demands)
@@ -24,7 +24,7 @@ void Controller::loadDemands(const FileName demands)
 	currentDemands = DataLoaderFromFile::loadDemands(demands);
 
 	outputVariables = {};
-	networkTopology = networkTopology_base;
+	networkTopology = NetworkTopology(networkTopology_base);
 }
 
 Route getRandomRoute(SamePlaceRoutes& routes)
@@ -87,6 +87,8 @@ void Controller::doAlgorithm()
 		char const *pchar = s.c_str();  //use char const* as target type
 
 		OutputDebugString(pchar);
+		if (iteration == 20)
+			break;
 #endif
 		processDemand(currentDemands.front());
 		currentDemands.pop();
@@ -121,5 +123,5 @@ Controller::Controller() : algorithmVariables{ 0 }, outputVariables{}
 
 Controller::~Controller()
 {
-	srand(time(NULL));
+	srand(static_cast<unsigned int>(time(NULL)));
 }

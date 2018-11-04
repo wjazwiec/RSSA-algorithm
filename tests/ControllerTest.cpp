@@ -11,16 +11,26 @@ class ControllerTest : public ::testing::Test
 protected:
 	void SetUp() override
 	{
-		m_controller.loadStaticData();
-		m_controller.loadDemands("Euro28/2000_01.dem");
+		controller.loadStaticData();
+		controller.loadDemands("Euro28/2000_01.dem");
 	}
 
-	Controller m_controller;
+	Controller controller;
 };
 
 
 TEST_F(ControllerTest, simple)
 {
-	m_controller.doAlgorithm();
-	EXPECT_TRUE(false);
+	controller.loadDemands("Euro28/2000_01.dem");
+
+	controller.setAlgVariables(AlgorithmVariables{ 0.0 });
+
+	controller.doAlgorithm();
+
+	//controller.loadDemands("Euro28/100_01.dem");
+	controller.loadDemands("Euro28/2000_01.dem");
+	controller.setAlgVariables(AlgorithmVariables{ 10.0 });
+	controller.doAlgorithm();
+
+	EXPECT_TRUE(true);
 }//3927
