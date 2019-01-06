@@ -12,7 +12,6 @@ protected:
 	void SetUp() override
 	{
 		controller.loadStaticData();
-		controller.loadDemands("Euro28/2000_01.dem");
 	}
 
 	Controller controller;

@@ -7,6 +7,7 @@
 #include <string>
 #include <time.h>
 #include <chrono>
+#include <fstream>
 
 void Controller::loadStaticData()
 {
@@ -25,6 +26,14 @@ void Controller::loadDemands(const FileName demands)
 
 	outputVariables = {};
 	networkTopology = NetworkTopology(networkTopology_base);
+
+	std::size_t start_sign = demands.find("/");
+
+	networkLoad = demands.substr(start_sign + 1);
+
+	std::size_t end_sign = networkLoad.find("_");
+
+	networkLoad = networkLoad.substr(0, end_sign);
 }
 
 Route getRandomRoute(SamePlaceRoutes& routes)
@@ -99,7 +108,10 @@ void Controller::doAlgorithm()
 	std::chrono::duration<double> elapsed = finish - start;
 
 	std::cout << std::endl << "Elapsed time: " << elapsed.count() << " s\n";
-	std::cout << "Demands all:" << outputVariables.demands.allIncoming << " served:" << outputVariables.demands.served << " rejected:" << outputVariables.demands.rejected << std::endl;
+	std::cout << "Alg variable: " << this->algorithmVariables.rangeOfBestRoutes << " Demands all:" << outputVariables.demands.allIncoming << " served:" << outputVariables.demands.served << " rejected:" << outputVariables.demands.rejected << std::endl;
+	std::cout << "Bitrate all:" << outputVariables.bitrate.allIncoming << " served:" << outputVariables.bitrate.served << " rejected:" << outputVariables.bitrate.rejected << std::endl;
+
+	saveToFile(resultFile);
 }
 
 void Controller::controlIterations(const short newIteration)
@@ -116,10 +128,30 @@ void Controller::controlIterations(const short newIteration)
 	}
 }
 
+void Controller::saveToFile(const FileName file)
+{
+	std::ofstream fileHandle(file, std::fstream::out | std::ios_base::app);
+
+	const std::string delimeter = ",";
+
+	if (fileHandle.is_open())
+	{
+		fileHandle << networkLoad << delimeter << outputVariables.bitrate.allIncoming << delimeter << outputVariables.bitrate.served << delimeter << outputVariables.bitrate.rejected
+			<< delimeter << outputVariables.demands.allIncoming << delimeter << outputVariables.demands.served << delimeter << outputVariables.demands.rejected
+			<< delimeter << this->algorithmVariables.rangeOfBestRoutes << std::endl;
+	}
+
+	fileHandle.close();
+}
+
+void Controller::setResultsFileName(const FileName file)
+{
+	this->resultFile = file;
+}
+
 Controller::Controller() : algorithmVariables{ 0 }, outputVariables{}
 {
 }
-
 
 Controller::~Controller()
 {

@@ -126,7 +126,7 @@ Demands DataLoaderFromFile::loadDemands(const FileName demandsFile)
 		}
 		else
 		{
-			demands.push(Demand{ iteration, source, target, bitrate, time });
+			demands.push(Demand{ iteration, source, target, time, bitrate });
 		}
 	}
 

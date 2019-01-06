@@ -35,6 +35,8 @@ public:
 
 	void doAlgorithm();
 	void controlIterations(const short iteration);
+	void saveToFile(const FileName file);
+	void setResultsFileName(const FileName file);
 
 	Demands currentDemands;
 	OutputVariables outputVariables;
@@ -42,6 +44,7 @@ private:
 	AlgorithmVariables algorithmVariables;
 	NetworkTopology networkTopology, networkTopology_base;
 	short iteration;
-
+	std::string networkLoad;
+	FileName resultFile;
 };
 

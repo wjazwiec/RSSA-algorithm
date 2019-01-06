@@ -1,34 +1,27 @@
 #include "Controller.h"
-
+#include <string>
 int main()
 {
 	Controller controller;
 
 	controller.loadStaticData();
-	controller.loadDemands("Euro28/1000_01.dem");
+	controller.setResultsFileName("results.csv");
 
-	controller.setAlgVariables(AlgorithmVariables{ 0.0 });
+	for (auto networkLoad = 100; networkLoad <= 100; networkLoad += 100)
+	{
+		for (auto testcase : { "01", "02", "03", "04", "05", "06", "07", "08", "09", "10" })
+		{
+			std::string fileName = "Euro28/" + std::to_string(networkLoad) + "_" + testcase + ".dem";
 
-	controller.doAlgorithm();
+			for (auto algVariable : { 0.0, 5.0, 10.0, 15.0, 30.0 })
+			{
+				controller.loadDemands(fileName);
+				controller.setAlgVariables(AlgorithmVariables{ algVariable });
+				controller.doAlgorithm();
+			}
+		}
+	}
 
-	//controller.loadDemands("Euro28/100_01.dem");
-	controller.loadDemands("Euro28/1000_01.dem");
-	controller.setAlgVariables(AlgorithmVariables{ 5.0 });
-	controller.doAlgorithm();
-
-	controller.loadDemands("Euro28/1000_01.dem");
-	controller.setAlgVariables(AlgorithmVariables{ 10.0 });
-	controller.doAlgorithm();
-
-	controller.loadDemands("Euro28/1000_01.dem");
-	controller.setAlgVariables(AlgorithmVariables{ 15.0 });
-	controller.doAlgorithm();
-
-	controller.loadDemands("Euro28/1000_01.dem");
-	controller.setAlgVariables(AlgorithmVariables{ 30.0 });
-	controller.doAlgorithm();
-
-	system("pause");
 
 	return 0;
 }
