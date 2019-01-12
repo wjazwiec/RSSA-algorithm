@@ -33,7 +33,6 @@
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
-    <ClCompile Include="ControllerTest.cpp" />
     <ClCompile Include="LinkTests.cpp" />
     <ClCompile Include="NetworkTopolyTests.cpp" />
   </ItemGroup>

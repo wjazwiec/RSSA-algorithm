@@ -7,7 +7,7 @@ int main()
 	controller.loadStaticData();
 	controller.setResultsFileName("results.csv");
 
-	for (auto networkLoad = 100; networkLoad <= 100; networkLoad += 100)
+	for (auto networkLoad = 100; networkLoad <= 2000; networkLoad += 100)
 	{
 		for (auto testcase : { "01", "02", "03", "04", "05", "06", "07", "08", "09", "10" })
 		{
